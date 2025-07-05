@@ -1,89 +1,94 @@
-# AI/CS Entry-Level & Internship Finder
+# AI/CS Entry‑Level & Internship Finder
 
 ## Overview
-
-This is a Python Streamlit application that helps users search for AI, ML, Data Science, and Software Engineering internships and entry-level roles using the JSearch API. It's built for students and recent graduates seeking roles in Fall 2025, Spring 2026, and Summer 2026.
+A lightweight Streamlit app that lets students and new grads hunt for AI, ML, Data‑Science and Software‑Engineering **internships** and **entry‑level** roles.  
+Powered by the **JSearch API** and tuned for Fall 2025, Spring 2026 and Summer 2026 recruiting cycles.
 
 ## System Architecture
+### Front‑end
+| Item | Detail |
+|------|--------|
+| **Framework** | Streamlit |
+| **Port** | Runs on `5000` (headless enabled) |
+| **Layout** | Wide, form‑based input with responsive columns |
+| **Interface** | Minimal UI, tool‑tips, expandable _Quick Search_ panel |
 
-### Frontend
-- **Framework**: Streamlit
-- **Port**: Runs on port 5000 with headless configuration
-- **Layout**: Wide layout with form-based input and responsive columns
-- **Interface**: Minimal UI with tooltips and clean design
-
-### Backend
-- **API**: JSearch API (via RapidAPI)
-- **Processing**: Pandas for DataFrame handling
-- **Session State**: Uses Streamlit session state for storing search results
-- **Query Logic**: Dynamically constructed based on user input
+### Back‑end
+| Item | Detail |
+|------|--------|
+| **API** | JSearch (via RapidAPI) |
+| **Processing** | Pandas DataFrames |
+| **State** | Streamlit `st.session_state` |
+| **Query Logic** | Dynamically built from user input & quick‑search buttons |
 
 ### Design Highlights
-- Modular design (app.py, utils.py)
-- API-driven architecture (not scraping)
-- Smart filters for job type and remote jobs
-- Custom job cards with save/apply functionality
+* Modular files (`app.py`, `utils.py`, etc.)
+* **API‑driven** (no web‑scraping)
+* Smart filters for **job type** and an **enhanced location filter**<br>  *(On‑site Only | Remote Only | Include Remote)*
+* Custom job cards, table view, and save/apply workflow
+* One‑click _Quick Search_ buttons for popular roles & seasons
 
 ## Core Modules
+| File | Responsibility |
+|------|----------------|
+| **app.py** | Streamlit UI, form logic, results display |
+| **utils.py** | Helper functions (remote‑job flag, formatting) |
 
-### app.py
-- Streamlit UI and form logic
-- Displays results and handles state
+## Data Schema
+Every job is a single DataFrame row:
 
-### utils.py
-- Helper functions for formatting and flagging remote jobs
+| Column | Description |
+|--------|-------------|
+| Job Title | Role name |
+| Company | Employer |
+| Location | City / Remote |
+| Description | Short blurb |
+| Apply Link | URL |
+| Remote Job | 🏠 flag |
+| Tags | Auto‑categorised theme |
+| QueryFlag | Season / entry‑level label |
 
-## Data Schema
-Each job entry is stored as a row in a pandas DataFrame with:
-- Job Title
-- Company
-- Location
-- Description
-- Apply Link
-- Remote Job Indicator
-
-## Workflow
-
-1. User submits job title/location
-2. JSearch API is queried with enhanced filters
-3. Results formatted and stored in session
-4. Displayed interactively with save/export options
+## Typical Workflow
+1. User enters keywords or hits a **Quick Search** shortcut  
+2. App constructs an enhanced query (keywords + season + location mode)  
+3. JSearch API returns matching postings  
+4. Jobs are tagged, cached & rendered (card or table)  
 
 ## Dependencies
-
-### Python Packages
-- streamlit (>=1.46.0)
-- pandas (>=2.3.0)
-- requests (>=2.32.4)
-
+### Python Packages
+```
+streamlit >=1.46  
+pandas    >=2.3  
+requests  >=2.32
+```
 ### Services
-- JSearch API via RapidAPI
+* JSearch API (RapidAPI key required)
 
 ## Deployment
-
 ### Replit
-- **Python**: 3.11
-- **Run**: `streamlit run app.py --server.port 5000`
-- Configured for autoscaling with global IP binding
+* **Runtime**: Python 3.11  
+* **Command**:
+```bash
+streamlit run app.py --server.port 5000
+```
+* Autoscale & open‑to‑web enabled
 
-## Enhancements (June 24, 2025)
-- Replaced scraping with JSearch API
-- Added job type filter (Internship, Entry-Level, Both)
-- Remote-only job toggle
-- Smart keyword expansion for seasonal searches
-- Save and export results
-- UI improvements
+## Enhancements (July 6 2025)
+* Added **location filter modes** (On‑site / Remote / Include)  
+* Quick‑search panel with **remote‑only** shortcuts  
+* Table view with batch‑apply & CSV export  
+* Email‑digest option for sending results
 
 ## Changelog
 ```
-- June 24, 2025: Major update with JSearch API and student-centric features
+2025‑06‑24  Major rewrite – switched to JSearch API  
+2025‑07‑06  Remote filter modes, quick‑search revamp, table view
 ```
 
 ## Technical Notes
-
-### Bot Detection Handling
-- Uses browser-mimicking headers and retry logic
+### Bot‑Detection
+Retry logic with browser‑like headers keeps the API happy.
 
 ### Performance
-- Efficient use of Pandas
-- Session-aware caching to reduce redundant queries
+* Pandas operations are vectorised  
+* Results cached in session to avoid duplicate queries
