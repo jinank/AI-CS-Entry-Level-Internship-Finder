@@ -452,6 +452,9 @@ with st.form("job_search_form"):
             sort_by = st.selectbox("Sort By", ["Relevance", "Date Posted", "Company"])
         
         # UI Mode and Email Digest
+        # Replace the email digest section in your form with this fixed version:
+
+        # UI Mode and Email Digest
         ui_col1, ui_col2 = st.columns(2)
         with ui_col1:
             view_mode = st.selectbox("View Mode", ["Card View", "Table View"])
@@ -471,20 +474,17 @@ with st.form("job_search_form"):
     # Form submit button (this must be inside the form)
     submitted = st.form_submit_button("🔍 Search Jobs", use_container_width=True)
 
-# Test email button OUTSIDE the form - this is crucial!
-if 'enable_digest' in locals() and enable_digest and digest_email:
-    st.markdown("---")
-    st.markdown("**Test Email Configuration:**")
+# Test email button OUTSIDE the form
+if enable_digest and digest_email:
     test_col1, test_col2, test_col3 = st.columns([1, 1, 1])
     with test_col2:
-        if st.button("📧 Send Test Email", key="test_email_btn"):
+        if st.button("Send Test Email", key="test_email_btn"):
             if validate_email(digest_email):
-                with st.spinner("Sending test email..."):
-                    success, message = send_test_email(digest_email)
-                    if success:
-                        st.success("✅ Test email sent successfully!")
-                    else:
-                        st.error(f"❌ Test failed: {message}")
+                success, message = send_test_email(digest_email)
+                if success:
+                    st.success("Test email sent!")
+                else:
+                    st.error(f"Test failed: {message}")
             else:
                 st.warning("Please enter a valid email address")
 
