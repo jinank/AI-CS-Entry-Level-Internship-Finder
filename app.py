@@ -452,41 +452,23 @@ with st.form("job_search_form"):
             sort_by = st.selectbox("Sort By", ["Relevance", "Date Posted", "Company"])
         
         # UI Mode and Email Digest
-        # Replace the email digest section in your form with this fixed version:
+        # Replace the email digest section with this honest version:
 
         # UI Mode and Email Digest
         ui_col1, ui_col2 = st.columns(2)
         with ui_col1:
             view_mode = st.selectbox("View Mode", ["Card View", "Table View"])
         with ui_col2:
-            enable_digest = st.checkbox("Enable Email Digest")
+            enable_digest = st.checkbox("📧 Email Results (Send search results to email)")
         
         # Email digest fields (but no buttons inside form)
         digest_email = None
-        digest_frequency = None
         if enable_digest:
-            digest_col1, digest_col2 = st.columns(2)
-            with digest_col1:
-                digest_email = st.text_input("Email for Digest", placeholder="your@email.com")
-            with digest_col2:
-                digest_frequency = st.selectbox("Frequency", ["Daily", "Weekly"])
+            digest_email = st.text_input("Email Address", placeholder="your@email.com")
+            st.info("📧 Email will be sent when you search for jobs (not automatically scheduled)")
     
     # Form submit button (this must be inside the form)
     submitted = st.form_submit_button("🔍 Search Jobs", use_container_width=True)
-
-# Test email button OUTSIDE the form
-if enable_digest and digest_email:
-    test_col1, test_col2, test_col3 = st.columns([1, 1, 1])
-    with test_col2:
-        if st.button("Send Test Email", key="test_email_btn"):
-            if validate_email(digest_email):
-                success, message = send_test_email(digest_email)
-                if success:
-                    st.success("Test email sent!")
-                else:
-                    st.error(f"Test failed: {message}")
-            else:
-                st.warning("Please enter a valid email address")
 
 # Update the filtering logic after form submission
 if submitted:
