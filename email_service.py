@@ -6,6 +6,8 @@ from email.mime.multipart import MIMEMultipart
 import os
 import pandas as pd
 from datetime import datetime
+import dotenv
+dotenv.load_dotenv()
 
 def send_job_digest_email(user_email, jobs_df, preferences):
     """Send daily job digest email to user."""
