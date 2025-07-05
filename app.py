@@ -8,7 +8,7 @@ from utils import highlight_remote_jobs, format_dataframe_display
 from job_tagger import tag_jobs_by_theme, get_tag_statistics, filter_jobs_by_tag
 from email_service import send_job_digest_email, validate_email, send_test_email
 
-def build_enhanced_query(keyword, location, job_type, remote_only):
+def build_enhanced_query(keyword, location, job_type, location_mode):
     """Build enhanced search query based on user selections."""
     query_parts = [keyword]
     
@@ -21,7 +21,7 @@ def build_enhanced_query(keyword, location, job_type, remote_only):
         query_parts.extend(["internship", "entry level", "new grad", "junior", "intern"])
     
     # Add remote if specified
-    if remote_only:
+    if location_mode == "Remote Only":
         query_parts.append("remote")
     
     return " ".join(query_parts)
@@ -377,6 +377,9 @@ if 'quick_remote' in st.session_state:
     st.session_state.pop('quick_remote', None)  # Clear after use
 
 # Create input form
+# Complete fixed form section - replace the entire form section in your app.py with this:
+
+# Create input form
 with st.form("job_search_form"):
     col1, col2, col3 = st.columns(3)
     
@@ -455,23 +458,35 @@ with st.form("job_search_form"):
         with ui_col2:
             enable_digest = st.checkbox("Enable Email Digest")
         
+        # Email digest fields (but no buttons inside form)
+        digest_email = None
+        digest_frequency = None
         if enable_digest:
-            digest_col1, digest_col2, digest_col3 = st.columns(3)
+            digest_col1, digest_col2 = st.columns(2)
             with digest_col1:
                 digest_email = st.text_input("Email for Digest", placeholder="your@email.com")
             with digest_col2:
                 digest_frequency = st.selectbox("Frequency", ["Daily", "Weekly"])
-            with digest_col3:
-                if st.button("Send Test Email") and digest_email and validate_email(digest_email):
+    
+    # Form submit button (this must be inside the form)
+    submitted = st.form_submit_button("🔍 Search Jobs", use_container_width=True)
+
+# Test email button OUTSIDE the form - this is crucial!
+if 'enable_digest' in locals() and enable_digest and digest_email:
+    st.markdown("---")
+    st.markdown("**Test Email Configuration:**")
+    test_col1, test_col2, test_col3 = st.columns([1, 1, 1])
+    with test_col2:
+        if st.button("📧 Send Test Email", key="test_email_btn"):
+            if validate_email(digest_email):
+                with st.spinner("Sending test email..."):
                     success, message = send_test_email(digest_email)
                     if success:
-                        st.success("Test email sent!")
+                        st.success("✅ Test email sent successfully!")
                     else:
-                        st.error(f"Test failed: {message}")
-                elif st.button("Send Test Email") and not digest_email:
-                    st.warning("Please enter a valid email address")
-    
-    submitted = st.form_submit_button("🔍 Search Jobs", use_container_width=True)
+                        st.error(f"❌ Test failed: {message}")
+            else:
+                st.warning("Please enter a valid email address")
 
 # Update the filtering logic after form submission
 if submitted:
@@ -511,13 +526,18 @@ if submitted:
                     
                     for job_type in selected_types:
                         search_terms = term_map[job_type]
-                        
-                        # Apply location mode to search terms
-                        if location_mode == "Remote Only":
-                            search_terms += " remote"
-                        
-                        full_query = f"{keyword.strip()} {search_terms}"
-                        jobs_df = scrape_indeed(full_query, location.strip())
+                    
+                    # Apply location mode to search terms
+                    if location_mode == "Remote Only":
+                        search_terms += " remote"
+                    
+                    full_query = f"{keyword.strip()} {search_terms}"
+                    jobs_df = scrape_indeed(full_query, location.strip())
+                    
+                    # Add query flag to identify job type
+                    if not jobs_df.empty:
+                        jobs_df['QueryFlag'] = job_type
+                        all_jobs.append(jobs_df)
                         
                         # Add query flag to identify job type
                         if not jobs_df.empty:
@@ -610,99 +630,6 @@ if 'saved_jobs' not in st.session_state:
     st.session_state.saved_jobs = []
 if 'view_mode' not in st.session_state:
     st.session_state.view_mode = "Card View"
-
-# Handle search
-if submitted:
-    if not keyword.strip():
-        st.error("Please enter a job keyword to search.")
-    else:
-        # Check if at least one job type is selected
-        selected_types = []
-        if fall_2025:
-            selected_types.append("Fall 2025 Internship")
-        if spring_2026:
-            selected_types.append("Spring 2026 Internship")
-        if summer_2026:
-            selected_types.append("Summer 2026 Internship")
-        if entry_level:
-            selected_types.append("Entry-Level / New-Grad Full-Time")
-        
-        if not selected_types:
-            st.error("Please select at least one job type to search for.")
-        else:
-            with st.spinner("🔍 Searching for jobs using JSearch API..."):
-                try:
-                    # Perform searches for each selected type
-                    all_jobs = []
-                    
-                    term_map = {
-                        "Fall 2025 Internship": "fall 2025 internship",
-                        "Spring 2026 Internship": "spring 2026 internship", 
-                        "Summer 2026 Internship": "summer 2026 internship",
-                        "Entry-Level / New-Grad Full-Time": "entry level new grad"
-                    }
-                    
-                    for job_type in selected_types:
-                        search_terms = term_map[job_type]
-                        if remote_only:
-                            search_terms += " remote"
-                        
-                        full_query = f"{keyword.strip()} {search_terms}"
-                        jobs_df = scrape_indeed(full_query, location.strip())
-                        
-                        # Add query flag to identify job type
-                        if not jobs_df.empty:
-                            jobs_df['QueryFlag'] = job_type
-                            all_jobs.append(jobs_df)
-                    
-                    # Combine all results
-                    if all_jobs:
-                        combined_df = pd.concat(all_jobs, ignore_index=True)
-                        
-                        # Filter remote only if selected
-                        if remote_only:
-                            combined_df = filter_remote_jobs(combined_df)
-                        
-                        # Apply sorting if specified
-                        if sort_by == "Date Posted" and 'Posting Date' in combined_df.columns:
-                            combined_df = combined_df.sort_values('Posting Date', ascending=False)
-                        elif sort_by == "Company":
-                            combined_df = combined_df.sort_values('Company')
-                        
-                        # Add job tags
-                        combined_df = tag_jobs_by_theme(combined_df)
-                        
-                        # Limit results
-                        combined_df = combined_df.head(num_results)
-                            
-                        st.session_state.jobs_df = combined_df
-                        st.session_state.search_timestamp = datetime.now()
-                        
-                        # Send email digest if enabled
-                        if enable_digest and digest_email and validate_email(digest_email):
-                            preferences = {
-                                'job_types': selected_types,
-                                'keywords': keyword,
-                                'location': location,
-                                'remote_only': remote_only
-                            }
-                            success, message = send_job_digest_email(digest_email, combined_df, preferences)
-                            if success:
-                                st.success(f"Found {len(combined_df)} jobs! Email digest sent to {digest_email}")
-                            else:
-                                st.success(f"Found {len(combined_df)} jobs!")
-                                st.warning(f"Email sending failed: {message}")
-                        elif not combined_df.empty:
-                            st.success(f"Found {len(combined_df)} jobs!")
-                        else:
-                            st.warning("No jobs found for your search criteria. Try different keywords or location.")
-                    else:
-                        st.session_state.jobs_df = pd.DataFrame()
-                        st.warning("No jobs found for your search criteria. Try different keywords or location.")
-                        
-                except Exception as e:
-                    st.error(f"❌ Error occurred while searching: {str(e)}")
-                    st.info("Please try again with different search terms or check your internet connection.")
 
 # Display results
 if not st.session_state.jobs_df.empty:
