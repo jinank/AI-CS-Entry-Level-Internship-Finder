@@ -2,6 +2,9 @@ import requests
 import pandas as pd
 import os
 from urllib.parse import quote_plus
+import dotenv
+
+dotenv.load_dotenv()
 
 def scrape_indeed(keyword: str, location: str = "") -> pd.DataFrame:
     """
