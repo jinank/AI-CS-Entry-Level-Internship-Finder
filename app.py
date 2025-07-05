@@ -380,6 +380,9 @@ if 'quick_remote' in st.session_state:
 # Complete fixed form section - replace the entire form section in your app.py with this:
 
 # Create input form
+# Replace the form section in your app.py with this structure:
+
+# Create input form
 with st.form("job_search_form"):
     col1, col2, col3 = st.columns(3)
     
@@ -409,7 +412,6 @@ with st.form("job_search_form"):
         
         # Determine default values based on quick search
         default_job_type = st.session_state.get('form_job_type', '')
-        default_remote = st.session_state.get('form_remote', False)
         
         col4, col5 = st.columns(2)
         
@@ -438,10 +440,11 @@ with st.form("job_search_form"):
         
         with filter_col1:
             # Enhanced location filter
+            default_remote = st.session_state.get('form_remote', False)
             location_mode = st.radio(
                 "Location Filter",
                 ["On-site Only", "Remote Only", "Include Remote"],
-                index=2 if not default_remote else 1,  # default to Include Remote, unless quick remote was selected
+                index=2 if not default_remote else 1,
                 help="Filter jobs based on work location preferences"
             )
         
@@ -451,24 +454,22 @@ with st.form("job_search_form"):
         with filter_col3:
             sort_by = st.selectbox("Sort By", ["Relevance", "Date Posted", "Company"])
         
-        # UI Mode and Email Digest
-        # Replace the email digest section with this honest version:
-
-        # UI Mode and Email Digest
-        ui_col1, ui_col2 = st.columns(2)
-        with ui_col1:
-            view_mode = st.selectbox("View Mode", ["Card View", "Table View"])
-        with ui_col2:
-            enable_digest = st.checkbox("📧 Email Results (Send search results to email)")
-        
-        # Email digest fields (but no buttons inside form)
-        digest_email = None
-        if enable_digest:
-            digest_email = st.text_input("Email Address", placeholder="your@email.com")
-            st.info("📧 Email will be sent when you search for jobs (not automatically scheduled)")
+        # UI Mode (keep this inside form)
+        view_mode = st.selectbox("View Mode", ["Card View", "Table View"])
     
     # Form submit button (this must be inside the form)
     submitted = st.form_submit_button("🔍 Search Jobs", use_container_width=True)
+
+# EMAIL DIGEST SECTION - OUTSIDE THE FORM (this is the key fix!)
+st.markdown("---")
+st.markdown("### 📧 Email Digest Options")
+
+enable_digest = st.checkbox("📧 Send search results to email")
+
+digest_email = None
+if enable_digest:
+    digest_email = st.text_input("Email Address", placeholder="your@email.com")
+    st.info("📧 Email will be sent when you search for jobs above")
 
 # Update the filtering logic after form submission
 if submitted:
