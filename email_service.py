@@ -1,3 +1,4 @@
+# email_service.py
 import smtplib
 import ssl
 from email.mime.text import MIMEText
