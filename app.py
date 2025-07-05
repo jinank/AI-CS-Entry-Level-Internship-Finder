@@ -231,30 +231,149 @@ st.set_page_config(
     layout="wide"
 )
 
+# Replace the quick search section in your code with this expandable version:
+
 # Main title
 st.title("🎯 AI/CS Entry-Level & Internship Finder")
 st.markdown("Find internships, entry-level roles, and new grad positions in AI, ML, Data Science, and Software Engineering")
 
-# Quick search shortcuts
-st.markdown("**Quick Search:**")
-quick_col1, quick_col2, quick_col3, quick_col4 = st.columns(4)
-with quick_col1:
-    if st.button("Data Science Intern", use_container_width=True):
-        st.session_state.quick_keyword = "data science"
-        st.session_state.quick_type = "Fall 2025 Internship"
-with quick_col2:
-    if st.button("ML Engineer Entry", use_container_width=True):
-        st.session_state.quick_keyword = "machine learning engineer"
-        st.session_state.quick_type = "Entry-Level"
-with quick_col3:
-    if st.button("Remote Software Intern", use_container_width=True):
-        st.session_state.quick_keyword = "software engineer"
-        st.session_state.quick_type = "Spring 2026 Internship"
-        st.session_state.quick_remote = True
-with quick_col4:
-    if st.button("AI Research Roles", use_container_width=True):
-        st.session_state.quick_keyword = "artificial intelligence research"
-        st.session_state.quick_type = "Both"
+# Expandable Quick Search Section
+with st.expander("🚀 Quick Search Options", expanded=False):
+    st.markdown("**Click any button below to instantly search for popular job types:**")
+    
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    # ── Column 1: Data Science ───────────────────────────────────────────────────
+    with col1:
+        st.markdown("**🍃 Data Science**")
+        if st.button("DS Intern (Fall 2025)", use_container_width=True, key="ds_intern_fall"):
+            st.session_state.quick_keyword = "data science"
+            st.session_state.quick_type = "Fall 2025 Internship"
+        if st.button("Junior Data Scientist", use_container_width=True, key="junior_ds"):
+            st.session_state.quick_keyword = "data scientist"
+            st.session_state.quick_type = "Entry-Level"
+        if st.button("Data Analyst Intern", use_container_width=True, key="da_intern"):
+            st.session_state.quick_keyword = "data analyst intern"
+            st.session_state.quick_type = "Summer 2026 Internship"
+
+    # ── Column 2: Machine Learning ───────────────────────────────────────────────
+    with col2:
+        st.markdown("**🤖 Machine Learning**")
+        if st.button("ML Engineer Intern", use_container_width=True, key="ml_intern"):
+            st.session_state.quick_keyword = "machine learning intern"
+            st.session_state.quick_type = "Fall 2025 Internship"
+        if st.button("ML Engineer Entry", use_container_width=True, key="ml_entry"):
+            st.session_state.quick_keyword = "machine learning engineer"
+            st.session_state.quick_type = "Entry-Level"
+        if st.button("ML Research Intern", use_container_width=True, key="ml_research"):
+            st.session_state.quick_keyword = "machine learning research intern"
+            st.session_state.quick_type = "Spring 2026 Internship"
+
+    # ── Column 3: Software Engineering ──────────────────────────────────────────
+    with col3:
+        st.markdown("**💻 Software Engineering**")
+        if st.button("Entry Software Engineer", use_container_width=True, key="swe_entry"):
+            st.session_state.quick_keyword = "software engineer"
+            st.session_state.quick_type = "Entry-Level"
+        if st.button("Frontend Intern", use_container_width=True, key="frontend_intern"):
+            st.session_state.quick_keyword = "frontend developer intern"
+            st.session_state.quick_type = "Summer 2026 Internship"
+        if st.button("Backend Engineer", use_container_width=True, key="backend_engineer"):
+            st.session_state.quick_keyword = "backend engineer"
+            st.session_state.quick_type = "Entry-Level"
+
+    # ── Column 4: AI & NLP ──────────────────────────────────────────────────────
+    with col4:
+        st.markdown("**🧠 AI & NLP**")
+        if st.button("AI Research Intern", use_container_width=True, key="ai_research"):
+            st.session_state.quick_keyword = "artificial intelligence intern"
+            st.session_state.quick_type = "Fall 2025 Internship"
+        if st.button("NLP Engineer Intern", use_container_width=True, key="nlp_intern"):
+            st.session_state.quick_keyword = "natural language processing intern"
+            st.session_state.quick_type = "Summer 2026 Internship"
+        if st.button("AI Researcher", use_container_width=True, key="ai_researcher"):
+            st.session_state.quick_keyword = "AI researcher"
+            st.session_state.quick_type = "Entry-Level"
+
+    # ── Column 5: Full-Stack & Business Intelligence ─────────────────────────────
+    with col5:
+        st.markdown("**🌐 Full-Stack & BI**")
+        if st.button("Full-Stack Entry", use_container_width=True, key="fullstack_entry"):
+            st.session_state.quick_keyword = "full stack developer"
+            st.session_state.quick_type = "Entry-Level"
+        if st.button("BI Intern", use_container_width=True, key="bi_intern"):
+            st.session_state.quick_keyword = "business intelligence intern"
+            st.session_state.quick_type = "Fall 2025 Internship"
+        if st.button("Data Engineer Entry", use_container_width=True, key="de_entry"):
+            st.session_state.quick_keyword = "data engineer"
+            st.session_state.quick_type = "Entry-Level"
+    
+    # Additional row for remote and popular searches
+    st.markdown("---")
+    st.markdown("**🏠 Remote & Popular Searches:**")
+    
+    remote_col1, remote_col2, remote_col3, remote_col4, remote_col5 = st.columns(5)
+    
+    with remote_col1:
+        if st.button("🏠 Remote SWE Intern", use_container_width=True, key="remote_swe"):
+            st.session_state.quick_keyword = "software engineer"
+            st.session_state.quick_type = "Spring 2026 Internship"
+            st.session_state.quick_remote = True
+    
+    with remote_col2:
+        if st.button("🏠 Remote Data Science", use_container_width=True, key="remote_ds"):
+            st.session_state.quick_keyword = "data science"
+            st.session_state.quick_type = "Entry-Level"
+            st.session_state.quick_remote = True
+    
+    with remote_col3:
+        if st.button("🏠 Remote ML Engineer", use_container_width=True, key="remote_ml"):
+            st.session_state.quick_keyword = "machine learning"
+            st.session_state.quick_type = "Entry-Level"
+            st.session_state.quick_remote = True
+    
+    with remote_col4:
+        if st.button("🏠 Remote Python Dev", use_container_width=True, key="remote_python"):
+            st.session_state.quick_keyword = "python developer"
+            st.session_state.quick_type = "Entry-Level"
+            st.session_state.quick_remote = True
+    
+    with remote_col5:
+        if st.button("🏠 Remote DevOps", use_container_width=True, key="remote_devops"):
+            st.session_state.quick_keyword = "devops engineer"
+            st.session_state.quick_type = "Entry-Level"
+            st.session_state.quick_remote = True
+    
+    # Quick tip at the bottom
+    st.info("💡 **Tip:** Click any button above to auto-fill the search form below, then click 'Search Jobs' to find opportunities!")
+
+# Quick search button handling - add this right after the expandable section
+if 'quick_keyword' in st.session_state:
+    st.session_state.form_keyword = st.session_state.quick_keyword
+    st.session_state.pop('quick_keyword', None)  # Clear after use
+
+if 'quick_type' in st.session_state:
+    st.session_state.form_job_type = st.session_state.quick_type
+    st.session_state.pop('quick_type', None)  # Clear after use
+
+if 'quick_remote' in st.session_state:
+    st.session_state.form_remote = st.session_state.quick_remote
+    st.session_state.pop('quick_remote', None)  # Clear after use
+
+# Continue with the rest of your form code...
+
+# Quick search button handling - add this right after the quick search buttons
+if 'quick_keyword' in st.session_state:
+    st.session_state.form_keyword = st.session_state.quick_keyword
+    st.session_state.pop('quick_keyword', None)  # Clear after use
+
+if 'quick_type' in st.session_state:
+    st.session_state.form_job_type = st.session_state.quick_type
+    st.session_state.pop('quick_type', None)  # Clear after use
+
+if 'quick_remote' in st.session_state:
+    st.session_state.form_remote = st.session_state.quick_remote
+    st.session_state.pop('quick_remote', None)  # Clear after use
 
 # Create input form
 with st.form("job_search_form"):
@@ -262,7 +381,7 @@ with st.form("job_search_form"):
     
     with col1:
         # Pre-fill from quick search if available
-        default_keyword = st.session_state.get('quick_keyword', '')
+        default_keyword = st.session_state.get('form_keyword', '')
         keyword = st.text_input(
             "Job Keywords", 
             value=default_keyword,
@@ -273,7 +392,7 @@ with st.form("job_search_form"):
     with col2:
         location = st.text_input(
             "Location (Optional)", 
-            placeholder="e.g., remote, San Francisco, New York",
+            placeholder="e.g., San Francisco, New York, Austin",
             help="Leave blank for global results"
         )
     
@@ -283,22 +402,48 @@ with st.form("job_search_form"):
     # Advanced filters in expandable section
     with st.expander("🔧 Advanced Filters", expanded=True):
         st.markdown("**Select job types to search for:**")
+        
+        # Determine default values based on quick search
+        default_job_type = st.session_state.get('form_job_type', '')
+        default_remote = st.session_state.get('form_remote', False)
+        
         col4, col5 = st.columns(2)
         
         with col4:
-            fall_2025 = st.checkbox("Fall 2025 Internship")
-            spring_2026 = st.checkbox("Spring 2026 Internship")
+            fall_2025 = st.checkbox(
+                "Fall 2025 Internship", 
+                value=(default_job_type == "Fall 2025 Internship")
+            )
+            spring_2026 = st.checkbox(
+                "Spring 2026 Internship", 
+                value=(default_job_type == "Spring 2026 Internship")
+            )
         
         with col5:
-            summer_2026 = st.checkbox("Summer 2026 Internship")
-            entry_level = st.checkbox("Entry-Level / New-Grad Full-Time")
+            summer_2026 = st.checkbox(
+                "Summer 2026 Internship", 
+                value=(default_job_type == "Summer 2026 Internship")
+            )
+            entry_level = st.checkbox(
+                "Entry-Level / New-Grad Full-Time", 
+                value=(default_job_type == "Entry-Level")
+            )
         
         # Additional filters row
         filter_col1, filter_col2, filter_col3 = st.columns(3)
+        
         with filter_col1:
-            remote_only = st.checkbox("Remote Only")
+            # Enhanced location filter
+            location_mode = st.radio(
+                "Location Filter",
+                ["On-site Only", "Remote Only", "Include Remote"],
+                index=2 if not default_remote else 1,  # default to Include Remote, unless quick remote was selected
+                help="Filter jobs based on work location preferences"
+            )
+        
         with filter_col2:
             num_results = st.selectbox("Max Results", [10, 25, 50, 100], index=1)
+        
         with filter_col3:
             sort_by = st.selectbox("Sort By", ["Relevance", "Date Posted", "Company"])
         
@@ -326,6 +471,115 @@ with st.form("job_search_form"):
                     st.warning("Please enter a valid email address")
     
     submitted = st.form_submit_button("🔍 Search Jobs", use_container_width=True)
+
+# Update the filtering logic after form submission
+if submitted:
+    if not keyword.strip():
+        st.error("Please enter a job keyword to search.")
+    else:
+        # Check if at least one job type is selected
+        selected_types = []
+        if fall_2025:
+            selected_types.append("Fall 2025 Internship")
+        if spring_2026:
+            selected_types.append("Spring 2026 Internship")
+        if summer_2026:
+            selected_types.append("Summer 2026 Internship")
+        if entry_level:
+            selected_types.append("Entry-Level / New-Grad Full-Time")
+        
+        if not selected_types:
+            st.error("Please select at least one job type to search for.")
+        else:
+            # Clear the form session state after successful submission
+            st.session_state.pop('form_keyword', None)
+            st.session_state.pop('form_job_type', None)
+            st.session_state.pop('form_remote', None)
+            
+            with st.spinner("🔍 Searching for jobs using JSearch API..."):
+                try:
+                    # Perform searches for each selected type
+                    all_jobs = []
+                    
+                    term_map = {
+                        "Fall 2025 Internship": "fall 2025 internship",
+                        "Spring 2026 Internship": "spring 2026 internship", 
+                        "Summer 2026 Internship": "summer 2026 internship",
+                        "Entry-Level / New-Grad Full-Time": "entry level new grad"
+                    }
+                    
+                    for job_type in selected_types:
+                        search_terms = term_map[job_type]
+                        
+                        # Apply location mode to search terms
+                        if location_mode == "Remote Only":
+                            search_terms += " remote"
+                        
+                        full_query = f"{keyword.strip()} {search_terms}"
+                        jobs_df = scrape_indeed(full_query, location.strip())
+                        
+                        # Add query flag to identify job type
+                        if not jobs_df.empty:
+                            jobs_df['QueryFlag'] = job_type
+                            all_jobs.append(jobs_df)
+                    
+                    # Combine all results
+                    if all_jobs:
+                        combined_df = pd.concat(all_jobs, ignore_index=True)
+                        
+                        # Apply location mode filtering
+                        if location_mode == "Remote Only":
+                            combined_df = filter_remote_jobs(combined_df)
+                        elif location_mode == "On-site Only":
+                            # Filter OUT remote jobs
+                            remote_mask = (
+                                combined_df['Location'].str.contains('remote|Remote|REMOTE', na=False, case=False) |
+                                combined_df['Job Type'].str.contains('remote|Remote|REMOTE', na=False, case=False) |
+                                combined_df['Job Title'].str.contains('remote|Remote|REMOTE', na=False, case=False)
+                            )
+                            combined_df = combined_df[~remote_mask].reset_index(drop=True)
+                        # For "Include Remote", we don't filter anything
+                        
+                        # Apply sorting if specified
+                        if sort_by == "Date Posted" and 'Posting Date' in combined_df.columns:
+                            combined_df = combined_df.sort_values('Posting Date', ascending=False)
+                        elif sort_by == "Company":
+                            combined_df = combined_df.sort_values('Company')
+                        
+                        # Add job tags
+                        combined_df = tag_jobs_by_theme(combined_df)
+                        
+                        # Limit results
+                        combined_df = combined_df.head(num_results)
+                            
+                        st.session_state.jobs_df = combined_df
+                        st.session_state.search_timestamp = datetime.now()
+                        
+                        # Send email digest if enabled
+                        if enable_digest and digest_email and validate_email(digest_email):
+                            preferences = {
+                                'job_types': selected_types,
+                                'keywords': keyword,
+                                'location': location,
+                                'location_mode': location_mode
+                            }
+                            success, message = send_job_digest_email(digest_email, combined_df, preferences)
+                            if success:
+                                st.success(f"Found {len(combined_df)} jobs! Email digest sent to {digest_email}")
+                            else:
+                                st.success(f"Found {len(combined_df)} jobs!")
+                                st.warning(f"Email sending failed: {message}")
+                        elif not combined_df.empty:
+                            st.success(f"Found {len(combined_df)} jobs!")
+                        else:
+                            st.warning("No jobs found for your search criteria. Try different keywords or location.")
+                    else:
+                        st.session_state.jobs_df = pd.DataFrame()
+                        st.warning("No jobs found for your search criteria. Try different keywords or location.")
+                        
+                except Exception as e:
+                    st.error(f"❌ Error occurred while searching: {str(e)}")
+                    st.info("Please try again with different search terms or check your internet connection.")
 
 # Search tips section
 with st.expander("💡 Search Tips & Suggestions"):
