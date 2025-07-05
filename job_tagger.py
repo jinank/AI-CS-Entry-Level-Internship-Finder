@@ -8,54 +8,104 @@ def tag_jobs_by_theme(jobs_df):
     
     # Define theme categories and their keywords
     theme_categories = {
-        "Computer Vision": [
-            "computer vision", "cv", "image processing", "opencv", "image recognition",
-            "object detection", "facial recognition", "medical imaging", "autonomous",
-            "lidar", "camera", "visual", "perception"
-        ],
-        "Natural Language Processing": [
-            "nlp", "natural language", "language model", "text processing", "chatbot",
-            "sentiment analysis", "speech recognition", "translation", "linguistics",
-            "transformer", "bert", "gpt", "llm"
-        ],
-        "Generative AI": [
-            "generative ai", "genai", "gpt", "llm", "large language model", "diffusion",
-            "stable diffusion", "dall-e", "midjourney", "text generation", "ai art",
-            "prompt engineering", "fine-tuning", "rag", "retrieval augmented"
-        ],
-        "Machine Learning": [
-            "machine learning", "ml", "deep learning", "neural network", "tensorflow",
-            "pytorch", "scikit-learn", "keras", "model training", "feature engineering",
-            "regression", "classification", "clustering", "supervised", "unsupervised"
-        ],
-        "Data Science": [
-            "data science", "data scientist", "data analysis", "statistics", "pandas",
-            "numpy", "jupyter", "visualization", "tableau", "power bi", "sql",
-            "database", "etl", "data pipeline", "analytics"
-        ],
-        "Robotics": [
-            "robotics", "robot", "ros", "autonomous", "drone", "manipulation",
-            "control systems", "embedded", "sensors", "actuators", "path planning"
-        ],
-        "Healthcare AI": [
-            "healthcare", "medical", "biotech", "pharmaceutical", "clinical",
-            "health tech", "telemedicine", "medical device", "fda", "hipaa",
-            "radiology", "pathology", "genomics"
-        ],
-        "FinTech": [
-            "fintech", "financial", "banking", "trading", "cryptocurrency", "blockchain",
-            "payments", "fraud detection", "risk management", "algorithmic trading",
-            "quantitative", "portfolio"
-        ],
-        "Cloud & DevOps": [
-            "cloud", "aws", "azure", "gcp", "kubernetes", "docker", "devops",
-            "ci/cd", "infrastructure", "terraform", "microservices", "serverless"
-        ],
-        "Research": [
-            "research", "phd", "academic", "publication", "conference", "arxiv",
-            "experimental", "theoretical", "university", "lab", "postdoc"
-        ]
-    }
+    "Computer Vision": [
+        "computer vision", "cv", "image processing", "opencv", "image recognition",
+        "object detection", "facial recognition", "medical imaging", "autonomous",
+        "lidar", "camera", "visual", "perception"
+    ],
+    "Natural Language Processing": [
+        "nlp", "natural language", "language model", "text processing", "chatbot",
+        "sentiment analysis", "speech recognition", "translation", "linguistics",
+        "transformer", "bert", "gpt", "llm"
+    ],
+    "Generative AI": [
+        "generative ai", "genai", "gpt", "llm", "large language model", "diffusion",
+        "stable diffusion", "dall-e", "midjourney", "text generation", "ai art",
+        "prompt engineering", "fine-tuning", "rag", "retrieval augmented"
+    ],
+    "Machine Learning": [
+        "machine learning", "ml", "deep learning", "neural network", "tensorflow",
+        "pytorch", "scikit-learn", "keras", "model training", "feature engineering",
+        "regression", "classification", "clustering", "supervised", "unsupervised"
+    ],
+    "Data Science": [
+        "data science", "data scientist", "data analysis", "statistics", "pandas",
+        "numpy", "jupyter", "visualization", "tableau", "power bi", "sql",
+        "database", "etl", "data pipeline", "analytics"
+    ],
+    "Robotics": [
+        "robotics", "robot", "ros", "autonomous", "drone", "manipulation",
+        "control systems", "embedded", "sensors", "actuators", "path planning"
+    ],
+    "Healthcare AI": [
+        "healthcare", "medical", "biotech", "pharmaceutical", "clinical",
+        "health tech", "telemedicine", "medical device", "fda", "hipaa",
+        "radiology", "pathology", "genomics"
+    ],
+    "FinTech": [
+        "fintech", "financial", "banking", "trading", "cryptocurrency", "blockchain",
+        "payments", "fraud detection", "risk management", "algorithmic trading",
+        "quantitative", "portfolio"
+    ],
+    "Cloud & DevOps": [
+        "cloud", "aws", "azure", "gcp", "kubernetes", "docker", "devops",
+        "ci/cd", "infrastructure", "terraform", "microservices", "serverless"
+    ],
+    "Research": [
+        "research", "phd", "academic", "publication", "conference", "arxiv",
+        "experimental", "theoretical", "university", "lab", "postdoc"
+    ],
+    "Software Engineering": [
+        "software engineer", "software developer", "backend", "frontend",
+        "full stack", "microservices", "api design", "rest", "graphql",
+        "design patterns", "oop", "typescript", "react", "java", "c++", "go"
+    ],
+    "Data Engineering & ETL": [
+        "data engineer", "etl", "data pipeline", "airflow", "spark", "dask",
+        "bigquery", "databricks", "warehousing", "redshift", "snowflake",
+        "kinesis", "kafka", "streaming", "batch processing"
+    ],
+    "MLOps & LLMOps": [
+        "mlops", "llmops", "model serving", "model deployment", "model monitoring",
+        "kubeflow", "sagemaker", "vertex ai", "mlflow", "feature store",
+        "inference", "ab testing", "drift detection", "vector database"
+    ],
+    "Speech & Audio": [
+        "speech", "asr", "speech recognition", "tts", "voice assistant",
+        "audio processing", "music information retrieval", "speaker diarization",
+        "audio classification", "sound event detection"
+    ],
+    "Cybersecurity & Privacy": [
+        "cybersecurity", "security engineer", "infosec", "penetration testing",
+        "vulnerability", "threat detection", "siem", "incident response",
+        "privacy", "gdpr", "pki", "zero trust", "iam"
+    ],
+    "Augmented / Virtual Reality": [
+        "ar", "vr", "mixed reality", "xr", "oculus",
+        "hololens", "3d graphics", "rendering", "spatial computing"
+    ],
+    "Autonomous Vehicles": [
+        "autonomous vehicle", "self driving", "ad as", "lidar", "sensor fusion",
+        "slam", "path planning", "drive sim", "perception stack", "automotive safety"
+    ],
+    "Edge & Embedded AI": [
+        "edge ai", "embedded ai", "tinyml", "micropython", "tflite", "rtos",
+        "arm cortex", "nvidia jetson", "raspberry pi", "low-power inference"
+    ],
+    "Quantum Computing": [
+        "quantum computing", "quantum algorithms", "qiskit", "cirq", "quantum error correction",
+        "superconducting qubits", "quantum annealing", "quantum machine learning"
+    ],
+    "EdTech & Learning Analytics": [
+        "edtech", "education technology", "learning analytics", "adaptive learning",
+        "lms", "moodle", "canvas", "mooc", "student success", "assessment analytics"
+    ],
+    "Climate Tech & Sustainability": [
+        "climate tech", "sustainability", "carbon accounting", "energy modeling",
+        "renewables", "climate risk", "emissions", "smart grid", "agritech", "environmental"
+    ]
+}
+
     
     # Add tags column
     jobs_df = jobs_df.copy()
