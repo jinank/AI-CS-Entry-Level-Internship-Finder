@@ -65,7 +65,7 @@ requests  >=2.32
 * JSearch API (RapidAPI key required)
 
 ## Deployment
-### Replit
+### Streamlit
 * **Runtime**: Python 3.11  
 * **Command**:
 ```bash
@@ -83,6 +83,7 @@ streamlit run app.py --server.port 5000
 ```
 2025‑06‑24  Major rewrite – switched to JSearch API  
 2025‑07‑06  Remote filter modes, quick‑search revamp, table view
+2025-07-10  Re-developed the user interface for public deployment
 ```
 
 ## Technical Notes
