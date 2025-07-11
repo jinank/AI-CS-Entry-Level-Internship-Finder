@@ -34,19 +34,19 @@ def fetch_jobs(keyword="data science intern", location=""):
 
     job_list = []
     for job in jobs:
-    job_list.append({
-        "Title": job.get("job_title"),
-        "Company": job.get("employer_name"),
-        "Location": job.get("job_city") or job.get("job_country"),
-        "Industry": job.get("job_title"),
-        "Source": "JSearch API",
-        "Posting Date": job.get("job_posted_at_datetime_utc", "").split("T")[0],
-        "Internship Type": job.get("job_employment_type") if job.get("job_employment_type") in ["Internship", "Full-time"] else "Other",
-        "Salary Range": f"${int(job['job_min_salary']):,}" if job.get("job_min_salary") else "N/A",
-        "Job Description": job.get("job_description", "")[:250],
-        "Link": job.get("job_apply_link"),
-        "Status": "PENDING"
-    })
+        job_list.append({
+            "Title": job.get("job_title"),
+            "Company": job.get("employer_name"),
+            "Location": job.get("job_city") or job.get("job_country"),
+            "Industry": job.get("job_title"),
+            "Source": "JSearch API",
+            "Posting Date": job.get("job_posted_at_datetime_utc", "").split("T")[0],
+            "Internship Type": job.get("job_employment_type") if job.get("job_employment_type") in ["Internship", "Full-time"] else "Other",
+            "Salary Range": f"${int(job['job_min_salary']):,}" if job.get("job_min_salary") else "N/A",
+            "Job Description": job.get("job_description", "")[:250],
+            "Link": job.get("job_apply_link"),
+            "Status": "PENDING"
+        })
 
     return pd.DataFrame(job_list)
 
