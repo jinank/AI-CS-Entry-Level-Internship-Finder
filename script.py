@@ -4,14 +4,14 @@ import pandas as pd
 from dotenv import load_dotenv
 from pyairtable import Table
 
-# Load environment variables
+# Load secrets
 load_dotenv()
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
 AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
 AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME", "Jobs")
 
-# Airtable setup
+# Airtable client
 airtable = Table(AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
 
 def fetch_jobs(keyword="data science intern", location=""):
@@ -19,7 +19,7 @@ def fetch_jobs(keyword="data science intern", location=""):
     querystring = {
         "query": keyword,
         "page": "1",
-        "num_pages": "1",  # Increase this if you want more results
+        "num_pages": "1",
         "date_posted": "month"
     }
 
@@ -31,30 +31,38 @@ def fetch_jobs(keyword="data science intern", location=""):
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
     jobs = data.get("data", [])
-    
+
     job_list = []
     for job in jobs:
         job_list.append({
-            "Job Title": job.get("job_title"),
+            "Title": job.get("job_title"),
             "Company": job.get("employer_name"),
             "Location": job.get("job_city") or job.get("job_country"),
-            "Description": job.get("job_description", "")[:300],  # Short description
-            "Apply Link": job.get("job_apply_link"),
-            "Job Type": job.get("job_employment_type"),
-            "Posting Date": job.get("job_posted_at_datetime_utc", "").split("T")[0]
+            "Industry": job.get("job_title"),  # You can map this better if needed
+            "Source": "JSearch API",
+            "Posting Date": job.get("job_posted_at_datetime_utc", "").split("T")[0],
+            "Internship Type": job.get("job_employment_type", "N/A"),
+            "Salary Range": job.get("job_min_salary", "N/A"),
+            "Job Description": job.get("job_description", "")[:250],
+            "Link": job.get("job_apply_link"),
+            "Status": "PENDING"
         })
 
     return pd.DataFrame(job_list)
 
 def upload_to_airtable(df):
-    for _, row in df.iterrows():
-        record = {col: row[col] for col in df.columns}
-        airtable.create(record)
+    for i, row in df.iterrows():
+        record = {col: row[col] for col in df.columns if pd.notnull(row[col])}
+        try:
+            airtable.create(record)
+        except Exception as e:
+            print(f"❌ Failed to upload row {i}: {record}")
+            print(f"Error: {e}")
 
 if __name__ == "__main__":
-    print("Fetching jobs...")
+    print("🔍 Fetching Data Science Intern jobs...")
     df = fetch_jobs()
-    print(f"Found {len(df)} jobs.")
-    print("Uploading to Airtable...")
+    print(f"✅ Retrieved {len(df)} job(s).")
+    print("📤 Uploading to Airtable...")
     upload_to_airtable(df)
-    print("✅ Done.")
+    print("🎉 Done.")
