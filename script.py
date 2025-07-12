@@ -22,8 +22,8 @@ def fetch_jobs(keyword="data science intern", location=""):
     querystring = {
         "query": keyword,
         "page": "1",
-        "num_pages": "1",
-        "date_posted": "today"
+        "num_pages": "1",         # ✅ Only one page
+        "date_posted": "today"    # ✅ Today's jobs only
     }
 
     headers = {
@@ -33,7 +33,7 @@ def fetch_jobs(keyword="data science intern", location=""):
 
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
-    jobs = data.get("data", [])
+    jobs = data.get("data", [])[:10]  # ✅ HARD LIMIT to 10 jobs
 
     job_list = []
     for job in jobs:
@@ -59,11 +59,11 @@ def fetch_jobs(keyword="data science intern", location=""):
 
     df = pd.DataFrame(job_list)
 
-    # Filter only today's date
+    # Filter to today's postings
     today = datetime.utcnow().strftime("%Y-%m-%d")
     df = df[df["Posting Date"] == today]
 
-    # Remove duplicate jobs locally
+    # Remove duplicate rows locally
     df.drop_duplicates(subset=["Title", "Company", "Location"], inplace=True)
 
     return df
