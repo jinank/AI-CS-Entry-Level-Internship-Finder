@@ -22,8 +22,8 @@ def fetch_jobs(keyword="data science intern", location=""):
     querystring = {
         "query": keyword,
         "page": "1",
-        "num_pages": "1",         # ✅ Only one page
-        "date_posted": "today"    # ✅ Today's jobs only
+        "num_pages": "1",
+        "date_posted": "today"
     }
 
     headers = {
@@ -31,9 +31,21 @@ def fetch_jobs(keyword="data science intern", location=""):
         "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
     }
 
+    # 🖨️ Print API request URL
+    full_url = f"{url}?query={querystring['query']}&page={querystring['page']}&num_pages={querystring['num_pages']}&date_posted={querystring['date_posted']}"
+    print("🔗 API Request URL:")
+    print(full_url)
+
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
-    jobs = data.get("data", [])[:10]  # ✅ HARD LIMIT to 10 jobs
+
+    # 📥 Print raw API results
+    print("\n📥 API Response Preview (max 10 jobs):")
+    for i, job in enumerate(data.get("data", [])[:10], 1):
+        print(f"{i}. {job.get('job_title')} @ {job.get('employer_name')} ({job.get('job_city') or job.get('job_country')})")
+
+    # Limit to 10 jobs
+    jobs = data.get("data", [])[:10]
 
     job_list = []
     for job in jobs:
@@ -71,7 +83,7 @@ def fetch_jobs(keyword="data science intern", location=""):
 def upload_to_airtable(df):
     print("🔄 Checking for existing records in Airtable...")
 
-    # Fetch all existing job keys from Airtable
+    # Fetch existing records to avoid duplicates
     existing_keys = set()
     for record in airtable.all():
         fields = record.get("fields", {})
@@ -82,7 +94,7 @@ def upload_to_airtable(df):
         )
         existing_keys.add(key)
 
-    # Upload only non-duplicate records
+    # Upload non-duplicate records
     uploaded = 0
     for i, row in df.iterrows():
         key = (
