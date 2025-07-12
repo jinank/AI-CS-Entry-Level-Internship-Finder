@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
-from pyairtable import Table
+from pyairtable import Api
 
 # Load environment variables from .env
 load_dotenv()
@@ -14,15 +14,17 @@ AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
 AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
 AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME", "Jobs")
 
-# Airtable client
-airtable = Table(AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
+# ✅ New recommended Airtable client
+api = Api(AIRTABLE_API_KEY)
+airtable = api.table(AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
+
 def fetch_jobs(keyword="data science intern", location=""):
     url = "https://jsearch.p.rapidapi.com/search"
     querystring = {
         "query": keyword,
         "page": "1",
         "num_pages": "1",
-        "date_posted": "today"  # Last 24 hours
+        "date_posted": "today"
     }
 
     headers = {
@@ -30,18 +32,22 @@ def fetch_jobs(keyword="data science intern", location=""):
         "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
     }
 
-    # Show URL for testing
+    # 🖨️ Print request URL
     full_url = f"{url}?query={querystring['query']}&page={querystring['page']}&num_pages={querystring['num_pages']}&date_posted={querystring['date_posted']}"
     print("🔗 API Request URL:")
     print(full_url)
 
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
-    jobs = data.get("data", [])[:10]  # Hard limit 10
+    jobs = data.get("data", [])[:10]  # ✅ Hard limit to 10 jobs
 
     if not jobs:
         print("⚠️ No jobs returned from API.")
-        return pd.DataFrame()  # Return empty DataFrame to prevent crashes
+        return pd.DataFrame()
+
+    print("\n📥 API Response Preview:")
+    for i, job in enumerate(jobs, 1):
+        print(f"{i}. {job.get('job_title')} @ {job.get('employer_name')} ({job.get('job_city') or job.get('job_country')})")
 
     job_list = []
     for job in jobs:
@@ -65,16 +71,16 @@ def fetch_jobs(keyword="data science intern", location=""):
         })
 
     df = pd.DataFrame(job_list)
+
+    # ✅ Remove local duplicates
     df.drop_duplicates(subset=["Title", "Company", "Location"], inplace=True)
 
-    print(f"📦 API returned {len(df)} unique job(s).")
+    print(f"\n📦 API returned {len(df)} unique job(s).")
     return df
 
-
 def upload_to_airtable(df):
-    print("🔄 Checking for existing records in Airtable...")
+    print("\n🔄 Checking for existing records in Airtable...")
 
-    # Fetch existing records to avoid duplicates
     existing_keys = set()
     for record in airtable.all():
         fields = record.get("fields", {})
@@ -85,7 +91,6 @@ def upload_to_airtable(df):
         )
         existing_keys.add(key)
 
-    # Upload non-duplicate records
     uploaded = 0
     for i, row in df.iterrows():
         key = (
@@ -109,13 +114,11 @@ def upload_to_airtable(df):
     print(f"\n📊 Upload complete: {uploaded} new job(s) added.")
 
 if __name__ == "__main__":
-    print("🔍 Fetching today's Data Science Intern jobs...")
+    print("🔍 Fetching Data Science Intern jobs posted in the last 24 hours...")
     df = fetch_jobs()
-    print(f"📦 {len(df)} unique job(s) found for today.")
-
     if df.empty:
-        print("⚠️ No new jobs found today.")
+        print("⚠️ No new jobs to upload.")
     else:
         print("📤 Uploading to Airtable...")
         upload_to_airtable(df)
-        print("✅ All done!")
+        print("✅ Done!")
