@@ -23,7 +23,7 @@ def fetch_jobs(keyword="data science intern", location=""):
         "query": keyword,
         "page": "1",
         "num_pages": "1",
-        "date_posted": "today"  # ✅ Only today's jobs
+        "date_posted": "today"
     }
 
     headers = {
@@ -59,24 +59,51 @@ def fetch_jobs(keyword="data science intern", location=""):
 
     df = pd.DataFrame(job_list)
 
-    # ✅ Filter only today's date (extra safeguard)
+    # Filter only today's date
     today = datetime.utcnow().strftime("%Y-%m-%d")
     df = df[df["Posting Date"] == today]
 
-    # ✅ Remove duplicate jobs
+    # Remove duplicate jobs locally
     df.drop_duplicates(subset=["Title", "Company", "Location"], inplace=True)
 
     return df
 
 def upload_to_airtable(df):
+    print("🔄 Checking for existing records in Airtable...")
+
+    # Fetch all existing job keys from Airtable
+    existing_keys = set()
+    for record in airtable.all():
+        fields = record.get("fields", {})
+        key = (
+            fields.get("Title", "").strip().lower(),
+            fields.get("Company", "").strip().lower(),
+            fields.get("Location", "").strip().lower()
+        )
+        existing_keys.add(key)
+
+    # Upload only non-duplicate records
+    uploaded = 0
     for i, row in df.iterrows():
+        key = (
+            str(row["Title"]).strip().lower(),
+            str(row["Company"]).strip().lower(),
+            str(row["Location"]).strip().lower()
+        )
+        if key in existing_keys:
+            print(f"🛑 Skipped duplicate: {row['Title']} @ {row['Company']}")
+            continue
+
         record = {col: row[col] for col in df.columns if pd.notnull(row[col])}
         try:
             airtable.create(record)
+            uploaded += 1
             print(f"✅ Uploaded: {record['Title']} @ {record['Company']}")
         except Exception as e:
             print(f"❌ Failed to upload row {i}: {record}")
             print(f"Error: {e}")
+
+    print(f"\n📊 Upload complete: {uploaded} new job(s) added.")
 
 if __name__ == "__main__":
     print("🔍 Fetching today's Data Science Intern jobs...")
