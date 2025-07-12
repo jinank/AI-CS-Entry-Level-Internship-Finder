@@ -16,14 +16,13 @@ AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME", "Jobs")
 
 # Airtable client
 airtable = Table(AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
-
 def fetch_jobs(keyword="data science intern", location=""):
     url = "https://jsearch.p.rapidapi.com/search"
     querystring = {
         "query": keyword,
         "page": "1",
         "num_pages": "1",
-        "date_posted": "today"
+        "date_posted": "today"  # Last 24 hours
     }
 
     headers = {
@@ -31,21 +30,18 @@ def fetch_jobs(keyword="data science intern", location=""):
         "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
     }
 
-    # 🖨️ Print API request URL
+    # Show URL for testing
     full_url = f"{url}?query={querystring['query']}&page={querystring['page']}&num_pages={querystring['num_pages']}&date_posted={querystring['date_posted']}"
     print("🔗 API Request URL:")
     print(full_url)
 
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
+    jobs = data.get("data", [])[:10]  # Hard limit 10
 
-    # 📥 Print raw API results
-    print("\n📥 API Response Preview (max 10 jobs):")
-    for i, job in enumerate(data.get("data", [])[:10], 1):
-        print(f"{i}. {job.get('job_title')} @ {job.get('employer_name')} ({job.get('job_city') or job.get('job_country')})")
-
-    # Limit to 10 jobs
-    jobs = data.get("data", [])[:10]
+    if not jobs:
+        print("⚠️ No jobs returned from API.")
+        return pd.DataFrame()  # Return empty DataFrame to prevent crashes
 
     job_list = []
     for job in jobs:
@@ -61,7 +57,6 @@ def fetch_jobs(keyword="data science intern", location=""):
             "Location": job.get("job_city") or job.get("job_country", "N/A"),
             "Industry": job.get("job_title"),
             "Source": "JSearch API",
-            "Posting Date": job.get("job_posted_at_datetime_utc", "").split("T")[0],
             "Internship Type": internship_type,
             "Salary Range": salary_range,
             "Job Description": job.get("job_description", "")[:250],
@@ -70,15 +65,11 @@ def fetch_jobs(keyword="data science intern", location=""):
         })
 
     df = pd.DataFrame(job_list)
-
-    # Filter to today's postings
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    df = df[df["Posting Date"] == today]
-
-    # Remove duplicate rows locally
     df.drop_duplicates(subset=["Title", "Company", "Location"], inplace=True)
 
+    print(f"📦 API returned {len(df)} unique job(s).")
     return df
+
 
 def upload_to_airtable(df):
     print("🔄 Checking for existing records in Airtable...")
