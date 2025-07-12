@@ -2,6 +2,7 @@ import os
 import requests
 import pandas as pd
 from datetime import datetime
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 from pyairtable import Api
 
@@ -14,7 +15,7 @@ AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
 AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
 AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME", "Jobs")
 
-# ✅ New recommended Airtable client
+# Airtable client (modern usage)
 api = Api(AIRTABLE_API_KEY)
 airtable = api.table(AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
 
@@ -32,14 +33,14 @@ def fetch_jobs(keyword="data science intern", location=""):
         "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
     }
 
-    # 🖨️ Print request URL
+    # Print API request URL for debug/testing
     full_url = f"{url}?query={querystring['query']}&page={querystring['page']}&num_pages={querystring['num_pages']}&date_posted={querystring['date_posted']}"
     print("🔗 API Request URL:")
     print(full_url)
 
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
-    jobs = data.get("data", [])[:10]  # ✅ Hard limit to 10 jobs
+    jobs = data.get("data", [])[:10]  # Limit to 10 jobs
 
     if not jobs:
         print("⚠️ No jobs returned from API.")
@@ -57,22 +58,24 @@ def fetch_jobs(keyword="data science intern", location=""):
         if internship_type not in ["Internship", "Full-time", "Part-time"]:
             internship_type = "Other"
 
+        link = job.get("job_apply_link")
+        parsed_url = urlparse(link) if link else None
+        source = parsed_url.netloc.replace("www.", "") if parsed_url and parsed_url.netloc else "Unknown"
+
         job_list.append({
             "Title": job.get("job_title"),
             "Company": job.get("employer_name"),
             "Location": job.get("job_city") or job.get("job_country", "N/A"),
             "Industry": job.get("job_title"),
-            "Source": "JSearch API",
+            "Source": source,
             "Internship Type": internship_type,
             "Salary Range": salary_range,
             "Job Description": job.get("job_description", "")[:250],
-            "Link": job.get("job_apply_link"),
+            "Link": link,
             "Status": "PENDING"
         })
 
     df = pd.DataFrame(job_list)
-
-    # ✅ Remove local duplicates
     df.drop_duplicates(subset=["Title", "Company", "Location"], inplace=True)
 
     print(f"\n📦 API returned {len(df)} unique job(s).")
