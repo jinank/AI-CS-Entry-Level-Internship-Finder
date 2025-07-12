@@ -15,7 +15,7 @@ AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
 AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
 AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME", "Jobs")
 
-# Airtable client (modern usage)
+# Airtable client
 api = Api(AIRTABLE_API_KEY)
 airtable = api.table(AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
 
@@ -33,14 +33,14 @@ def fetch_jobs(keyword="data science intern", location=""):
         "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
     }
 
-    # Print API request URL for debug/testing
+    # Print API request URL
     full_url = f"{url}?query={querystring['query']}&page={querystring['page']}&num_pages={querystring['num_pages']}&date_posted={querystring['date_posted']}"
     print("🔗 API Request URL:")
     print(full_url)
 
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
-    jobs = data.get("data", [])[:10]  # Limit to 10 jobs
+    jobs = data.get("data", [])[:10]
 
     if not jobs:
         print("⚠️ No jobs returned from API.")
@@ -62,6 +62,9 @@ def fetch_jobs(keyword="data science intern", location=""):
         parsed_url = urlparse(link) if link else None
         source = parsed_url.netloc.replace("www.", "") if parsed_url and parsed_url.netloc else "Unknown"
 
+        # ✅ Create deduplication key
+        dedup_key = f"{job.get('job_title', '')}-{job.get('employer_name', '')}-{job.get('job_city') or job.get('job_country', '')}".lower().strip()
+
         job_list.append({
             "Title": job.get("job_title"),
             "Company": job.get("employer_name"),
@@ -72,36 +75,29 @@ def fetch_jobs(keyword="data science intern", location=""):
             "Salary Range": salary_range,
             "Job Description": job.get("job_description", "")[:250],
             "Link": link,
-            "Status": "PENDING"
+            "Status": "PENDING",
+            "Dedup Key": dedup_key  # ✅ For checking uniqueness
         })
 
     df = pd.DataFrame(job_list)
-    df.drop_duplicates(subset=["Title", "Company", "Location"], inplace=True)
+    df.drop_duplicates(subset=["Dedup Key"], inplace=True)
 
     print(f"\n📦 API returned {len(df)} unique job(s).")
     return df
 
 def upload_to_airtable(df):
-    print("\n🔄 Checking for existing records in Airtable...")
+    print("\n🔄 Checking for existing Dedup Keys in Airtable...")
 
     existing_keys = set()
     for record in airtable.all():
-        fields = record.get("fields", {})
-        key = (
-            fields.get("Title", "").strip().lower(),
-            fields.get("Company", "").strip().lower(),
-            fields.get("Location", "").strip().lower()
-        )
-        existing_keys.add(key)
+        key = record.get("fields", {}).get("Dedup Key", "").strip().lower()
+        if key:
+            existing_keys.add(key)
 
     uploaded = 0
     for i, row in df.iterrows():
-        key = (
-            str(row["Title"]).strip().lower(),
-            str(row["Company"]).strip().lower(),
-            str(row["Location"]).strip().lower()
-        )
-        if key in existing_keys:
+        dedup_key = str(row.get("Dedup Key", "")).strip().lower()
+        if dedup_key in existing_keys:
             print(f"🛑 Skipped duplicate: {row['Title']} @ {row['Company']}")
             continue
 
