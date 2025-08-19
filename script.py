@@ -6,22 +6,18 @@ from urllib.parse import urlparse
 from dotenv import load_dotenv
 from pyairtable import Api
 
-# Load environment variables
+# Load .env
 load_dotenv()
 
-# API Keys and config
+# Keys & Config
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
 AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
 AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME", "Jobs")
-print(RAPIDAPI_KEY)
-print(AIRTABLE_API_KEY)
-print(AIRTABLE_BASE_ID)
-print(AIRTABLE_TABLE_NAME)
+
 # Airtable setup
 api = Api(AIRTABLE_API_KEY)
 airtable = api.table(AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
-
 
 def fetch_jobs(keyword="data science intern"):
     url = "https://jsearch.p.rapidapi.com/search"
@@ -36,14 +32,14 @@ def fetch_jobs(keyword="data science intern"):
         "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
     }
 
-    # Print constructed API request URL
+    # Show request
     full_url = f"{url}?query={querystring['query']}&page=1&num_pages=1&date_posted=today"
-    print("🔗 API Request URL:")
-    print(full_url)
+    print("🔗 API Request URL:", full_url)
 
+    # Call API
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
-    jobs = data.get("data", [])[:10]
+    jobs = data.get("data", [])[:10]  # Limit to 10 results
 
     if not jobs:
         print("⚠️ No jobs returned from API.")
@@ -53,7 +49,7 @@ def fetch_jobs(keyword="data science intern"):
     for job in jobs:
         title = job.get("job_title", "")
         if "2026" not in title:
-            continue  # ✅ Filter by title keyword
+            continue  # Filter by year in title
 
         salary = job.get("job_min_salary")
         salary_range = f"${int(salary):,}" if salary else "N/A"
@@ -76,23 +72,24 @@ def fetch_jobs(keyword="data science intern"):
             "Location": job.get("job_city") or job.get("job_country", "N/A"),
             "Industry": title,
             "Source": source,
-            "Posting Date": posting_date,  # ✅ Added Posting Date
+            "Posting Date": posting_date,
             "Internship Type": internship_type,
             "Salary Range": salary_range,
             "Job Description": job.get("job_description", "")[:250],
             "Link": link,
             "Status": "PENDING",
-            "Dedup Key": dedup_key  # ✅ Used for deduplication
+            "Dedup Key": dedup_key
         })
 
     df = pd.DataFrame(job_list)
     df.drop_duplicates(subset=["Dedup Key"], inplace=True)
 
-    print(f"\n📦 Fetched {len(df)} job(s) with '2026' in the title.")
+    print(f"📦 Filtered {len(df)} job(s) with '2026' in title and no duplicates.")
     return df
 
+
 def upload_to_airtable(df):
-    print("\n🔄 Checking existing records in Airtable by Dedup Key...")
+    print("\n🔄 Checking existing records in Airtable...")
     existing_keys = set()
     for record in airtable.all():
         key = record.get("fields", {}).get("Dedup Key", "").strip().lower()
