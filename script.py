@@ -1,124 +1,88 @@
-import os
 import requests
 import pandas as pd
-from datetime import datetime
-from urllib.parse import urlparse
-from dotenv import load_dotenv
 from pyairtable import Api
+import streamlit as st
+from datetime import datetime
+import os
 
-# Load .env
-load_dotenv()
-
-# Keys & Config
-RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
-AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY")
-AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID")
-AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME", "Jobs")
-
-# Airtable setup
+# ----------------- Airtable Config -------------------
+AIRTABLE_API_KEY = os.getenv("AIRTABLE_API_KEY") or "your_airtable_api_key"
+AIRTABLE_BASE_ID = os.getenv("AIRTABLE_BASE_ID") or "your_base_id"
+AIRTABLE_TABLE_NAME = os.getenv("AIRTABLE_TABLE_NAME") or "your_table_name"
 api = Api(AIRTABLE_API_KEY)
 airtable = api.table(AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
 
-def fetch_jobs(keyword="data science intern"):
+# ----------------- JSearch API Config ----------------
+JSEARCH_API_KEY = os.getenv("JSEARCH_API_KEY") or "your_jsearch_api_key"
+headers = {
+    "X-RapidAPI-Key": JSEARCH_API_KEY,
+    "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
+}
+
+# ----------------- Fetch Jobs Function ----------------
+def fetch_jobs():
+    query = "data science intern"
     url = "https://jsearch.p.rapidapi.com/search"
-    querystring = {
-        "query": keyword,
+    params = {
+        "query": query,
         "page": "1",
         "num_pages": "1",
-        "date_posted": "today"
-    }
-    headers = {
-        "X-RapidAPI-Key": RAPIDAPI_KEY,
-        "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
+        "date_posted": "last_3_days"  # Previously: 'today'
     }
 
-    # Show request
-    full_url = f"{url}?query={querystring['query']}&page=1&num_pages=1&date_posted=today"
-    print("🔗 API Request URL:", full_url)
+    # Print API request for debugging
+    st.write("🔗 API Request URL:")
+    st.code(f"{url}?query={params['query']}&page={params['page']}&num_pages={params['num_pages']}&date_posted={params['date_posted']}")
 
-    # Call API
-    response = requests.get(url, headers=headers, params=querystring)
+    response = requests.get(url, headers=headers, params=params)
     data = response.json()
-    jobs = data.get("data", [])[:10]  # Limit to 10 results
 
-    if not jobs:
-        print("⚠️ No jobs returned from API.")
-        return pd.DataFrame()
+    jobs = data.get("data", [])[:10]  # Hard limit: 10 results
+    filtered_jobs = []
 
-    job_list = []
     for job in jobs:
         title = job.get("job_title", "")
-        if "2026" not in title:
-            continue  # Filter by year in title
-
-        salary = job.get("job_min_salary")
-        salary_range = f"${int(salary):,}" if salary else "N/A"
-        internship_type = job.get("job_employment_type", "Other")
-        if internship_type not in ["Internship", "Full-time", "Part-time"]:
-            internship_type = "Other"
-
-        link = job.get("job_apply_link")
-        parsed_url = urlparse(link) if link else None
-        source = parsed_url.netloc.replace("www.", "") if parsed_url and parsed_url.netloc else "Unknown"
-
-        posting_date_raw = job.get("job_posted_at_datetime_utc")
-        posting_date = pd.to_datetime(posting_date_raw).date().isoformat() if posting_date_raw else "N/A"
-
-        dedup_key = f"{title}-{job.get('employer_name', '')}-{job.get('job_city') or job.get('job_country', '')}".lower().strip()
-
-        job_list.append({
-            "Title": title,
-            "Company": job.get("employer_name"),
-            "Location": job.get("job_city") or job.get("job_country", "N/A"),
-            "Industry": title,
-            "Source": source,
-            "Posting Date": posting_date,
-            "Internship Type": internship_type,
-            "Salary Range": salary_range,
-            "Job Description": job.get("job_description", "")[:250],
-            "Link": link,
-            "Status": "PENDING",
-            "Dedup Key": dedup_key
-        })
-
-    df = pd.DataFrame(job_list)
-    df.drop_duplicates(subset=["Dedup Key"], inplace=True)
-
-    print(f"📦 Filtered {len(df)} job(s) with '2026' in title and no duplicates.")
-    return df
-
-
-def upload_to_airtable(df):
-    print("\n🔄 Checking existing records in Airtable...")
-    existing_keys = set()
-    for record in airtable.all():
-        key = record.get("fields", {}).get("Dedup Key", "").strip().lower()
-        if key:
-            existing_keys.add(key)
-
-    uploaded = 0
-    for i, row in df.iterrows():
-        dedup_key = str(row.get("Dedup Key", "")).strip().lower()
-        if dedup_key in existing_keys:
-            print(f"🛑 Skipped duplicate: {row['Title']} @ {row['Company']}")
+        description = job.get("job_description", "")
+        if "2026" not in title and "2026" not in description:
             continue
 
-        record = {col: row[col] for col in df.columns if pd.notnull(row[col])}
-        try:
-            airtable.create(record)
-            uploaded += 1
-            print(f"✅ Uploaded: {record['Title']} @ {record['Company']}")
-        except Exception as e:
-            print(f"❌ Failed to upload row {i}: {record}")
-            print(f"Error: {e}")
+        # Check for duplicates in Airtable
+        existing = airtable.all(formula=f"{{Title}} = '{title}'")
+        if existing:
+            continue
 
-    print(f"\n📊 Upload complete: {uploaded} new job(s) added.")
+        record = {
+            "Title": title,
+            "Company": job.get("employer_name", ""),
+            "Location": job.get("job_city", ""),
+            "Industry": job.get("job_employment_type", ""),
+            "Source": job.get("job_apply_link") or job.get("job_google_link"),
+            "Posting Date": job.get("job_posted_at_datetime_utc", "")[:10],
+            "Internship Type": job.get("job_employment_type", ""),
+            "Salary Range": job.get("job_salary_currency", "") + " " + str(job.get("job_min_salary", "")) if job.get("job_min_salary") else "",
+            "Job Description": job.get("job_description", ""),
+            "Link": job.get("job_apply_link") or job.get("job_google_link"),
+            "Status": "PENDING"
+        }
+        filtered_jobs.append(record)
 
-if __name__ == "__main__":
-    print("🚀 Running job fetch + upload workflow...")
+    st.write(f"📦 Filtered {len(filtered_jobs)} job(s) with '2026' in title/description and no duplicates.")
+    return pd.DataFrame(filtered_jobs)
+
+# ----------------- Upload to Airtable ----------------
+def upload_to_airtable(df):
+    for _, row in df.iterrows():
+        airtable.create(row.to_dict())
+    st.success(f"✅ Uploaded {len(df)} new job(s) to Airtable.")
+
+# ----------------- Streamlit Interface ----------------
+st.title("AI/CS Internship Finder 🚀")
+
+if st.button("Fetch Latest Jobs"):
+    st.info("🚀 Running job fetch + upload workflow...")
     df = fetch_jobs()
-    if df.empty:
-        print("⚠️ No matching jobs found.")
-    else:
+    if not df.empty:
         upload_to_airtable(df)
-        print("✅ Done!")
+        st.dataframe(df)
+    else:
+        st.warning("⚠️ No matching jobs found.")
