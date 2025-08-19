@@ -27,24 +27,22 @@ def fetch_jobs():
         "query": query,
         "page": "1",
         "num_pages": "1",
-        "date_posted": "last_3_days"  # Previously: 'today'
+        "date_posted": "last_3_days"
     }
 
-    # Print API request for debugging
+    # Debug: Show full URL
     st.write("🔗 API Request URL:")
     st.code(f"{url}?query={params['query']}&page={params['page']}&num_pages={params['num_pages']}&date_posted={params['date_posted']}")
 
     response = requests.get(url, headers=headers, params=params)
     data = response.json()
 
-    jobs = data.get("data", [])[:10]  # Hard limit: 10 results
+    jobs = data.get("data", [])[:10]  # Limit to 10 jobs
     filtered_jobs = []
 
     for job in jobs:
         title = job.get("job_title", "")
         description = job.get("job_description", "")
-        if "2026" not in title and "2026" not in description:
-            continue
 
         # Check for duplicates in Airtable
         existing = airtable.all(formula=f"{{Title}} = '{title}'")
@@ -60,13 +58,13 @@ def fetch_jobs():
             "Posting Date": job.get("job_posted_at_datetime_utc", "")[:10],
             "Internship Type": job.get("job_employment_type", ""),
             "Salary Range": job.get("job_salary_currency", "") + " " + str(job.get("job_min_salary", "")) if job.get("job_min_salary") else "",
-            "Job Description": job.get("job_description", ""),
+            "Job Description": description,
             "Link": job.get("job_apply_link") or job.get("job_google_link"),
             "Status": "PENDING"
         }
         filtered_jobs.append(record)
 
-    st.write(f"📦 Filtered {len(filtered_jobs)} job(s) with '2026' in title/description and no duplicates.")
+    st.write(f"📦 Collected {len(filtered_jobs)} new job(s) after deduplication.")
     return pd.DataFrame(filtered_jobs)
 
 # ----------------- Upload to Airtable ----------------
