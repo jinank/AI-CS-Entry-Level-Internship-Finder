@@ -21,7 +21,7 @@ headers = {
 
 # ----------------- Fetch Jobs Function ----------------
 def fetch_jobs():
-    query = "data science intern"
+    query = "machine learning intern"
     url = "https://jsearch.p.rapidapi.com/search"
     params = {
         "query": query,
