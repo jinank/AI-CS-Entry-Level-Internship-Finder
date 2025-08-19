@@ -13,7 +13,7 @@ api = Api(AIRTABLE_API_KEY)
 airtable = api.table(AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
 
 # ----------------- JSearch API Config ----------------
-JSEARCH_API_KEY = "cfa5882958msh690f691905c7873p1180e7jsnc8090662fec2"
+JSEARCH_API_KEY = "85d02129a9mshf2ce00a36cf80b8p11d40ajsnd4c6897f878e"
 
 headers = {
     "X-RapidAPI-Key": JSEARCH_API_KEY,
