@@ -14,7 +14,7 @@ airtable = api.table(AIRTABLE_BASE_ID, AIRTABLE_TABLE_NAME)
 
 # ----------------- JSearch API Config ----------------
 JSEARCH_API_KEY = os.getenv("JSEARCH_API_KEY") or "your_jsearch_api_key"
-print(JSEARCH_API_KEY)
+
 headers = {
     "X-RapidAPI-Key": JSEARCH_API_KEY,
     "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
@@ -78,6 +78,7 @@ def upload_to_airtable(df):
 st.title("AI/CS Internship Finder 🚀")
 
 if st.button("Fetch Latest Jobs"):
+    st.info(JSEARCH_API_KEY)
     st.info("🚀 Running job fetch + upload workflow...")
     df = fetch_jobs()
     if not df.empty:
